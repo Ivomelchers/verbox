@@ -202,7 +202,7 @@ def preview_csv_for_user(
             "reason_label": _issue_reason_label(s.reason),
             "description": s.description,
             "preview": s.preview,
-            "suggestion": _issue_suggestion(s.reason),
+            "suggestion": _issue_suggestion(s.reason, entry.platform_display),
         }
         for s in parse_result.skipped[:ISSUE_LIMIT]
     ]
@@ -269,7 +269,7 @@ def preview_csv_for_user(
         "instrument_preview": instrument_preview,
         "can_confirm_import": can_confirm,
         "confirm_hint": (
-            "Controleer de transacties hieronder en importeer als alles klopt met uw DEGIRO-export."
+            f"Controleer de transacties hieronder en importeer als alles klopt met uw {entry.platform_display}-export."
             if can_confirm and not has_gaps
             else (
                 "Controleer de transacties en let op de regels die we hebben overgeslagen."
@@ -296,12 +296,12 @@ def _issue_reason_label(reason: str) -> str:
     return labels.get(reason, "Overgeslagen")
 
 
-def _issue_suggestion(reason: str) -> str:
+def _issue_suggestion(reason: str, platform_display: str = "") -> str:
     if reason == "unknown_description":
         return (
             "Deze regel past niet bij onze bekende transactietypes. "
-            "U kunt hem later handmatig toevoegen of de regel in DEGIRO controleren."
+            f"U kunt hem later handmatig toevoegen of de regel in {platform_display} controleren."
         )
     if reason == "zero_amount":
         return "Het bedrag is € 0 — vaak een administratieve regel zonder effect op uw portefeuille."
-    return "Open deze regel in uw DEGIRO-export en controleer of de gegevens kloppen."
+    return f"Open deze regel in uw {platform_display}-export en controleer of de gegevens kloppen."

@@ -36,7 +36,18 @@ def parse_bybit_csv(
     *,
     column_mapping: dict[str, str] | None = None,
 ) -> CsvParseResult:
-    data_rows, original_headers, _ = read_dict_rows(content)
+    # Skip Bybit metadata header lines (e.g., "UID: 123456,Company Name: ...")
+    lines = content.split('\n')
+    csv_start = 0
+    for i, line in enumerate(lines):
+        # Skip lines that look like metadata (contain colons but not commas separating data)
+        if line.strip() and ':' in line and line.count(':') > line.count(','):
+            csv_start = i + 1
+        else:
+            break
+    cleaned_content = '\n'.join(lines[csv_start:])
+
+    data_rows, original_headers, _ = read_dict_rows(cleaned_content)
     hmap = header_map(original_headers)
     normalized = set(hmap.keys())
 
@@ -52,9 +63,9 @@ def parse_bybit_csv(
         if score < 0.85:
             missing = bybit_missing_required(normalized)
             raise CsvParseError(
-                "Dit is geen herkende Bybit spot trade-export. "
+                "Dit is geen herkende Bybit-export. "
                 f"Ontbrekende kolommen: {', '.join(missing) or 'onbekend format'}. "
-                "Download het trade-overzicht uit uw Bybit-account."
+                "Download de trade-export of asset-history uit uw Bybit-account."
             )
         columns = build_column_resolver(BYBIT_SCHEMA, hmap)
 
@@ -76,7 +87,7 @@ def parse_bybit_csv(
 
         try:
             quantity = abs(parse_decimal(_cell(raw, qty_col)))
-            price = abs(parse_decimal(_cell(raw, price_col)))
+            price = abs(parse_decimal(_cell(raw, price_col))) if price_col else 0
             fee = abs(parse_decimal(_cell(raw, fee_col)))
             occurred_at = _parse_executed_at(_cell(raw, time_col))
         except CsvParseError as exc:
@@ -87,7 +98,7 @@ def parse_bybit_csv(
 
         symbol = base_symbol_from_pair(symbol_raw)
         tx_type = map_bybit_side(side_raw)
-        total = quantity * price
+        total = quantity * price if price > 0 else 0
         order_id = _cell(raw, order_col)
         tx_hash = row_hash(
             [

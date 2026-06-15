@@ -35,6 +35,54 @@ class BybitParserTests(TestCase):
         self.assertEqual(row.symbol, "ETH")
         self.assertEqual(row.quantity, Decimal("1"))
 
+    def test_parse_asset_history_format(self):
+        """Test parsing Bybit asset change/transfer history."""
+        content = load_text_fixture("bybit", "asset-history.csv")
+        result = parse_bybit_csv(content)
+        # Should have transfers and withdrawals (skip zero qty rows)
+        self.assertGreater(len(result.rows), 0)
+        # Check that coins are correctly mapped to symbols
+        symbols = {row.symbol for row in result.rows}
+        self.assertIn("USDT", symbols)
+        self.assertIn("LINK", symbols)
+        self.assertIn("BTC", symbols)
+
+    def test_asset_history_transfer_in_mapping(self):
+        """Test that 'Transfer in' maps to BUY."""
+        content = (
+            "UID,Date & Time(UTC),Coin,QTY,Type,Account Balance,Description\n"
+            "123,2025-09-30 18:23:12,BTC,0.1,Transfer in,0.1,Deposit\n"
+        )
+        result = parse_bybit_csv(content)
+        self.assertEqual(len(result.rows), 1)
+        self.assertEqual(result.rows[0].symbol, "BTC")
+        self.assertEqual(result.rows[0].transaction_type, TransactionType.BUY)
+        self.assertEqual(result.rows[0].quantity, Decimal("0.1"))
+
+    def test_asset_history_withdraw_mapping(self):
+        """Test that 'Withdraw' maps to SELL."""
+        content = (
+            "UID,Date & Time(UTC),Coin,QTY,Type,Account Balance,Description\n"
+            "123,2025-09-30 19:04:50,USDC,-100,Withdraw,0,Withdrawal\n"
+        )
+        result = parse_bybit_csv(content)
+        self.assertEqual(len(result.rows), 1)
+        self.assertEqual(result.rows[0].symbol, "USDC")
+        self.assertEqual(result.rows[0].transaction_type, TransactionType.SELL)
+        self.assertEqual(result.rows[0].quantity, Decimal("100"))  # abs()
+
+    def test_parse_with_metadata_header(self):
+        """Test parsing Bybit CSV with metadata header line."""
+        content = (
+            "UID: 507999707,Company Name: ,Country: \n"
+            "UID,Date & Time(UTC),Coin,QTY,Type,Account Balance,Description\n"
+            "507999707,2025-09-30 18:23:12,BTC,0.1,Transfer in,0.1,\n"
+        )
+        result = parse_bybit_csv(content)
+        self.assertEqual(len(result.rows), 1)
+        self.assertEqual(result.rows[0].symbol, "BTC")
+        self.assertEqual(result.rows[0].quantity, Decimal("0.1"))
+
 
 class BybitImportTests(TestCase):
     def setUp(self):

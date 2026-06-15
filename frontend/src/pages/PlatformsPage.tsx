@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Button,
@@ -9,6 +9,14 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
+import {
+  Zap,
+  Upload,
+  CalendarDays,
+  PenLine,
+  Plus,
+  LayoutGrid,
+} from "lucide-react";
 
 import {
   deleteConnection,
@@ -36,12 +44,18 @@ import {
   type IntegrationMethod,
 } from "../data/platformCatalog";
 import { useUser } from "../contexts/UserContext";
-import { LIVE_CSV_PLATFORMS } from "../utils/platformLabels";
 import { getApiErrorMessage } from "../utils/apiError";
 
 const BROWSE_PLATFORMS = PLATFORM_CATALOG.filter((p) =>
   ["coinbase", "ibkr", "trading212", "abn"].includes(p.id),
 );
+
+const METHOD_ICONS: Record<IntegrationMethod, React.ReactNode> = {
+  api: <Zap size={14} strokeWidth={2} />,
+  csv: <Upload size={14} strokeWidth={2} />,
+  year: <CalendarDays size={14} strokeWidth={2} />,
+  manual: <PenLine size={14} strokeWidth={2} />,
+};
 
 function mapConnectionMethod(method: string): IntegrationMethod {
   if (method === "api") return "api";
@@ -64,7 +78,6 @@ export default function PlatformsPage() {
   const [csvWizardFile, setCsvWizardFile] = useState<File | null>(null);
   const [csvWizardPlatform, setCsvWizardPlatform] = useState<string | undefined>(undefined);
   const csvInputRef = useRef<HTMLInputElement>(null);
-  const csvSectionRef = useRef<HTMLDivElement>(null);
 
   const loadConnections = useCallback(async () => {
     setLoading(true);
@@ -82,23 +95,6 @@ export default function PlatformsPage() {
   useEffect(() => {
     void loadConnections();
   }, [loadConnections]);
-
-  useEffect(() => {
-    const state = location.state as {
-      focusDegiroCsv?: boolean;
-      focusCsvPlatform?: string;
-    } | null;
-    const platform = state?.focusCsvPlatform ?? (state?.focusDegiroCsv ? "degiro" : null);
-    if (!platform) {
-      return;
-    }
-    navigate(location.pathname, { replace: true, state: {} });
-    setCsvWizardPlatform(platform);
-    const timer = window.setTimeout(() => {
-      csvSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 300);
-    return () => window.clearTimeout(timer);
-  }, [location.pathname, location.state, navigate]);
 
   const grouped = useMemo(() => {
     const groups: Record<IntegrationMethod, PlatformConnection[]> = {
@@ -208,21 +204,64 @@ export default function PlatformsPage() {
 
     return (
       <MotionSection key={method}>
-        <SectionHeader
-          title={
-            <>
+        <Flex align="flex-end" justify="space-between" mb={4} gap={4} flexWrap="wrap">
+          <Box>
+            <Flex align="center" gap={2} mb={1}>
+              <Box color="azure.400" display="flex" mt="1px">
+                {METHOD_ICONS[method]}
+              </Box>
+              <Text
+                fontSize="10px"
+                fontWeight={700}
+                letterSpacing="0.12em"
+                textTransform="uppercase"
+                color="ink.faint"
+              >
+                {meta.subtitle}
+              </Text>
+            </Flex>
+            <Box
+              as="h2"
+              fontFamily="heading"
+              fontWeight={400}
+              fontSize={{ base: "xl", md: "2xl" }}
+              letterSpacing="-0.02em"
+              color="ink.primary"
+              lineHeight={1.2}
+              sx={{ em: { fontStyle: "italic", color: "azure.500" } }}
+            >
               {meta.title.split(" · ")[0]}{" "}
-              <Text as="em">· {meta.title.split(" · ").slice(1).join(" · ") || meta.subtitle}</Text>
-            </>
-          }
-          kicker={meta.subtitle}
-        />
+              <Text as="em">
+                · {meta.title.split(" · ").slice(1).join(" · ") || meta.subtitle}
+              </Text>
+            </Box>
+          </Box>
+          <Button
+            as={RouterLink}
+            to={addHref}
+            variant="fiscalOutline"
+            size="sm"
+            leftIcon={<Plus size={14} strokeWidth={2.5} />}
+          >
+            Toevoegen
+          </Button>
+        </Flex>
+
         {items.length === 0 ? (
-          <Text fontSize="sm" color="ink.dim" fontStyle="italic" mb={3}>
-            Nog geen {meta.label.toLowerCase()} gekoppeld.
-          </Text>
+          <Box
+            p={5}
+            bg="backgroundCard"
+            border="1px solid"
+            borderColor="line.soft"
+            borderRadius="base"
+            mb={2}
+          >
+            <Text fontSize="sm" color="ink.faint" fontStyle="italic">
+              Nog geen {meta.label.toLowerCase()} gekoppeld.
+            </Text>
+          </Box>
         ) : (
-          <VStack align="stretch" spacing={3} mb={3}>
+          <VStack align="stretch" spacing={3} mb={2}>
             {items.map((connection) => (
               <ConnectionRowCard
                 key={connection.id}
@@ -251,17 +290,6 @@ export default function PlatformsPage() {
             ))}
           </VStack>
         )}
-        <Button
-          as={RouterLink}
-          to={addHref}
-          variant="ghostNav"
-          size="sm"
-          fontWeight={500}
-          color="azure.500"
-          _hover={{ bg: "azure.50" }}
-        >
-          {meta.addLabel}
-        </Button>
       </MotionSection>
     );
   }
@@ -280,10 +308,16 @@ export default function PlatformsPage() {
           actions={
             <Flex gap={2} flexWrap="wrap">
               <Button as={RouterLink} to="/platforms/vergelijker" variant="fiscalOutline" size="sm">
-                Platformen vergelijken
+                Vergelijken
               </Button>
-              <Button as={RouterLink} to="/platforms/add" variant="fiscal" size="sm">
-                + Platform toevoegen
+              <Button
+                as={RouterLink}
+                to="/platforms/add"
+                variant="fiscal"
+                size="sm"
+                leftIcon={<Plus size={14} strokeWidth={2.5} />}
+              >
+                Platform toevoegen
               </Button>
             </Flex>
           }
@@ -359,66 +393,54 @@ export default function PlatformsPage() {
           {(["api", "csv", "year", "manual"] as IntegrationMethod[]).map(renderGroup)}
 
           <MotionSection>
-            <SectionHeader
-              title={
-                <>
+            <Flex align="flex-end" justify="space-between" mb={4} gap={4} flexWrap="wrap">
+              <Box>
+                <Flex align="center" gap={2} mb={1}>
+                  <Box color="azure.400" display="flex" mt="1px">
+                    <LayoutGrid size={14} strokeWidth={2} />
+                  </Box>
+                  <Text
+                    fontSize="10px"
+                    fontWeight={700}
+                    letterSpacing="0.12em"
+                    textTransform="uppercase"
+                    color="ink.faint"
+                  >
+                    blader door 30+ ondersteunde platformen
+                  </Text>
+                </Flex>
+                <Box
+                  as="h2"
+                  fontFamily="heading"
+                  fontWeight={400}
+                  fontSize={{ base: "xl", md: "2xl" }}
+                  letterSpacing="-0.02em"
+                  color="ink.primary"
+                  lineHeight={1.2}
+                  sx={{ em: { fontStyle: "italic", color: "azure.500" } }}
+                >
                   Platform <Text as="em">zoeken</Text>
-                </>
-              }
-              kicker="blader door 30+ ondersteunde platformen"
-            />
+                </Box>
+              </Box>
+              <Button
+                as={RouterLink}
+                to="/platforms/add"
+                variant="fiscalOutline"
+                size="sm"
+              >
+                Toon alle platformen →
+              </Button>
+            </Flex>
+
             <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} spacing={4}>
               {BROWSE_PLATFORMS.map((p) => (
                 <PlatformBrowseCard key={p.id} platform={p} />
               ))}
             </SimpleGrid>
-            <Button
-              as={RouterLink}
-              to="/platforms/add"
-              variant="fiscalOutline"
-              size="sm"
-              mt={4}
-            >
-              Toon alle platformen →
-            </Button>
-          </MotionSection>
-
-          <MotionSection>
-            <Box
-              ref={csvSectionRef}
-              p={5}
-              border="1px dashed"
-              borderColor="line.DEFAULT"
-              borderRadius="base"
-              bg="backgroundHover"
-            >
-              <Text fontWeight={600} mb={2}>
-                CSV-import
-              </Text>
-              <Text fontSize="sm" color="ink.dim" mb={4} lineHeight={1.7}>
-                Upload een transactie-export. Ondersteund: DEGIRO, Trading 212, Trade Republic,
-                Bybit en OKX. Auto-detectie op kolomkoppen; preview vóór import.
-              </Text>
-              <Flex gap={2} flexWrap="wrap">
-                {LIVE_CSV_PLATFORMS.map((p) => (
-                  <Button
-                    key={p.id}
-                    variant={csvWizardPlatform === p.id ? "fiscal" : "fiscalOutline"}
-                    size="sm"
-                    isDisabled={!user?.email_verified}
-                    onClick={() => {
-                      setCsvWizardPlatform(p.id);
-                      csvInputRef.current?.click();
-                    }}
-                  >
-                    {p.name} CSV
-                  </Button>
-                ))}
-              </Flex>
-            </Box>
           </MotionSection>
         </>
       )}
+
       <CsvImportWizard
         isOpen={csvWizardOpen}
         file={csvWizardFile}

@@ -19,7 +19,8 @@ def parse_decimal(value: str) -> Decimal:
     cleaned = (value or "").strip().replace(",", ".")
     if not cleaned or cleaned in {"-", "—"}:
         return Decimal(0)
-    cleaned = re.sub(r"[^\d.\-+]", "", cleaned)
+    # Allow scientific notation (E/e with optional sign)
+    cleaned = re.sub(r"[^\d.\-+eE]", "", cleaned)
     if not cleaned or cleaned in {".", "-", "+", "-.", "+."}:
         return Decimal(0)
     try:

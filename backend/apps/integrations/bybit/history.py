@@ -52,7 +52,15 @@ def parse_exec_time(value) -> datetime:
 
 
 def map_bybit_side(side: str) -> str:
-    normalized = (side or "").lower()
+    normalized = (side or "").lower().strip()
+
+    # Handle transfer history types
+    if "transfer in" in normalized or "deposit" in normalized:
+        return TransactionType.BUY  # Treat as buy for cost basis
+    if "withdraw" in normalized or "transfer out" in normalized:
+        return TransactionType.SELL  # Treat as sell/withdrawal
+
+    # Handle trade types
     if normalized in ("sell", "s"):
         return TransactionType.SELL
     return TransactionType.BUY
