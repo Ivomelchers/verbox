@@ -8,7 +8,6 @@ interface FiscalTableProps extends TableProps {
   toolbar?: ReactNode;
 }
 
-/** Premium tabel in elevated card met toolbar. */
 export default function FiscalTable({ children, toolbar, ...tableProps }: FiscalTableProps) {
   return (
     <FiscalCard elevated p={0} overflow="hidden">
@@ -18,7 +17,7 @@ export default function FiscalTable({ children, toolbar, ...tableProps }: Fiscal
           py={3}
           borderBottom="1px solid"
           borderColor="line.soft"
-          bg="backgroundHover"
+          bg="backgroundCard"
         >
           {toolbar}
         </Box>
@@ -38,15 +37,23 @@ export default function FiscalTable({ children, toolbar, ...tableProps }: Fiscal
               letterSpacing: "0.12em",
               textTransform: "uppercase",
               color: "ink.faint",
-              fontWeight: 600,
+              fontWeight: 700,
               borderColor: "line.soft",
+              bg: "backgroundCard",
+              py: 3,
             },
             td: {
               borderColor: "line.soft",
+              py: "10px",
             },
             "tbody tr": {
-              transition: "background 0.15s ease",
-              _hover: { bg: "azure.50" },
+              transition: "background 0.12s ease",
+            },
+            "tbody tr:hover": {
+              bg: "azure.50",
+            },
+            "tbody tr:last-child td": {
+              borderBottom: "none",
             },
           }}
           {...tableProps}

@@ -21,30 +21,32 @@ export default function InsightCard({
 }: InsightCardProps) {
   return (
     <Box
-      bg="backgroundCard"
+      bg="paper"
       border="1px solid"
       borderColor="line.DEFAULT"
-      borderRadius="base"
-      p={5}
-      transition="border-color 0.15s ease, box-shadow 0.15s ease"
+      borderRadius="md"
+      px={5}
+      py={5}
+      boxShadow="sm"
+      transition="border-color 0.18s ease, box-shadow 0.18s ease"
       _hover={{
-        borderColor: "taupe.500",
-        boxShadow: "md",
+        borderColor: "line.soft"  ,
+        boxShadow: "0 4px 20px -4px rgba(20, 33, 61, 0.10), 0 1px 4px rgba(20, 33, 61, 0.04)",
       }}
     >
       <Kicker mb={3}>{label}</Kicker>
       {typeof value === "string" ? (
         <MoneyText
           variant="display"
-          fontSize={{ base: "28px", md: "32px" }}
+          fontSize={{ base: "26px", md: "30px" }}
           tone={tone}
           color={accent === "ochre" ? "azure.500" : undefined}
-          letterSpacing="-0.02em"
+          letterSpacing="-0.025em"
         >
           {value}
         </MoneyText>
       ) : (
-        <Box fontFamily="heading" fontSize={{ base: "28px", md: "32px" }} letterSpacing="-0.02em">
+        <Box fontFamily="heading" fontSize={{ base: "26px", md: "30px" }} letterSpacing="-0.025em">
           {value}
         </Box>
       )}

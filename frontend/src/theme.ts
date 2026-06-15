@@ -32,6 +32,12 @@ const colors = {
     500: "#B8934E",
     600: "#CBA461",
   },
+  ochre: {
+    50: "rgba(184, 147, 78, 0.06)",
+    100: "rgba(184, 147, 78, 0.10)",
+    500: "#B8934E",
+    600: "#CBA461",
+  },
   moss: {
     50: "rgba(74, 122, 78, 0.10)",
     500: "#4A7A4E",
@@ -71,15 +77,16 @@ const theme = extendTheme({
   },
   radii: {
     none: "0",
-    sm: "2px",
-    base: "4px",
-    md: "4px",
-    lg: "4px",
+    sm: "3px",
+    base: "6px",
+    md: "8px",
+    lg: "12px",
     full: "9999px",
   },
   shadows: {
-    sm: "0 1px 2px rgba(20, 33, 61, 0.04)",
-    md: "0 1px 2px rgba(20, 33, 61, 0.04), 0 12px 32px -16px rgba(20, 33, 61, 0.18)",
+    sm: "0 1px 3px rgba(20, 33, 61, 0.06), 0 1px 2px rgba(20, 33, 61, 0.04)",
+    md: "0 4px 8px -2px rgba(20, 33, 61, 0.08), 0 2px 4px -2px rgba(20, 33, 61, 0.04), 0 20px 48px -16px rgba(20, 33, 61, 0.14)",
+    lg: "0 8px 24px -4px rgba(20, 33, 61, 0.12), 0 4px 8px -4px rgba(20, 33, 61, 0.06)",
     outline: "none",
   },
   styles: {
@@ -160,7 +167,7 @@ const theme = extendTheme({
         fontFamily: "body",
         fontWeight: 500,
         borderRadius: "base",
-        transition: `background ${transition}, border-color ${transition}, color ${transition}`,
+        transition: `background ${transition}, border-color ${transition}, color ${transition}, box-shadow ${transition}, transform 0.12s ease`,
       },
       variants: {
         fiscal: {
@@ -171,6 +178,12 @@ const theme = extendTheme({
           _hover: {
             bg: "azure.600",
             borderColor: "azure.600",
+            boxShadow: "0 4px 14px rgba(30, 58, 95, 0.28)",
+            transform: "translateY(-1px)",
+          },
+          _active: {
+            transform: "translateY(0)",
+            boxShadow: "none",
           },
         },
         fiscalOutline: {
@@ -180,8 +193,9 @@ const theme = extendTheme({
           borderColor: "line.DEFAULT",
           _hover: {
             color: "azure.500",
-            borderColor: "azure.500",
+            borderColor: "azure.400",
             bg: "azure.50",
+            boxShadow: "0 2px 8px rgba(30, 58, 95, 0.10)",
           },
         },
         premium: {
@@ -256,13 +270,36 @@ const theme = extendTheme({
             _hover: { borderColor: "taupe.500" },
             _focusVisible: {
               borderColor: "azure.500",
-              boxShadow: "none",
+              boxShadow: "0 0 0 3px rgba(30, 58, 95, 0.08)",
             },
           },
         },
       },
       defaultProps: {
         variant: "fiscal",
+      },
+    },
+    Select: {
+      variants: {
+        fiscal: {
+          field: {
+            bg: "paper",
+            border: "1px solid",
+            borderColor: "line.DEFAULT",
+            borderRadius: "base",
+            fontSize: "body",
+            h: "42px",
+            _hover: { borderColor: "taupe.500" },
+            _focusVisible: {
+              borderColor: "azure.500",
+              boxShadow: "0 0 0 3px rgba(30, 58, 95, 0.08)",
+            },
+          },
+          icon: {
+            color: "ink.faint",
+            fontSize: "16px",
+          },
+        },
       },
     },
     Checkbox: {

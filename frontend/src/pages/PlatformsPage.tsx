@@ -31,7 +31,6 @@ import CsvImportWizard, {
   formatPreviewMessage,
 } from "../components/platforms/CsvImportWizard";
 import AuthAlert from "../components/auth/AuthAlert";
-import SectionHeader from "../components/common/SectionHeader";
 import StatStrip from "../components/common/StatStrip";
 import ConnectionRowCard from "../components/platforms/ConnectionRowCard";
 import PlatformBrowseCard from "../components/platforms/PlatformBrowseCard";

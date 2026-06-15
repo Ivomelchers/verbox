@@ -1,6 +1,23 @@
 import { Badge, Box, Button, Flex, Text, VStack } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import { NavLink, useLocation } from "react-router-dom";
+import type { LucideIcon } from "lucide-react";
+import {
+  LayoutDashboard,
+  PieChart,
+  PackagePlus,
+  ArrowLeftRight,
+  Receipt,
+  FileText,
+  TrendingUp,
+  Building2,
+  Layers,
+  PlusCircle,
+  Scale,
+  UserCircle,
+  ShieldCheck,
+  LogOut,
+} from "lucide-react";
 
 import { useUser } from "../../contexts/UserContext";
 import { fiscalScrollbarSx } from "../../styles/scrollbar";
@@ -10,40 +27,41 @@ import SidebarBrand from "./SidebarBrand";
 interface NavItem {
   label: string;
   to: string;
+  Icon?: LucideIcon;
 }
 
 const navSections: { label: string; items: NavItem[] }[] = [
   {
     label: "Overzicht",
     items: [
-      { label: "Dashboard", to: "/dashboard" },
-      { label: "Portefeuille", to: "/portfolio" },
-      { label: "Asset toevoegen", to: "/portfolio/manual/asset" },
-      { label: "Transactie toevoegen", to: "/portfolio/manual/transaction" },
-      { label: "Transacties", to: "/transactions" },
+      { label: "Dashboard", to: "/dashboard", Icon: LayoutDashboard },
+      { label: "Portefeuille", to: "/portfolio", Icon: PieChart },
+      { label: "Asset toevoegen", to: "/portfolio/manual/asset", Icon: PackagePlus },
+      { label: "Transactie toevoegen", to: "/portfolio/manual/transaction", Icon: ArrowLeftRight },
+      { label: "Transacties", to: "/transactions", Icon: Receipt },
     ],
   },
   {
     label: "Belasting",
     items: [
-      { label: "Belastingpositie", to: "/belasting" },
-      { label: "Werkelijk rendement", to: "/belasting/werkelijk" },
-      { label: "Overig vermogen", to: "/belasting/overig-vermogen" },
+      { label: "Belastingpositie", to: "/belasting", Icon: FileText },
+      { label: "Werkelijk rendement", to: "/belasting/werkelijk", Icon: TrendingUp },
+      { label: "Overig vermogen", to: "/belasting/overig-vermogen", Icon: Building2 },
     ],
   },
   {
     label: "Platformen",
     items: [
-      { label: "Mijn platformen", to: "/platforms" },
-      { label: "Platform toevoegen", to: "/platforms/add" },
-      { label: "Platformen vergelijken", to: "/platforms/vergelijker" },
+      { label: "Mijn platformen", to: "/platforms", Icon: Layers },
+      { label: "Platform toevoegen", to: "/platforms/add", Icon: PlusCircle },
+      { label: "Platformen vergelijken", to: "/platforms/vergelijker", Icon: Scale },
     ],
   },
   {
     label: "Account",
     items: [
-      { label: "Account", to: "/settings/account" },
-      { label: "2FA beveiliging", to: "/settings/2fa" },
+      { label: "Account", to: "/settings/account", Icon: UserCircle },
+      { label: "2FA beveiliging", to: "/settings/2fa", Icon: ShieldCheck },
     ],
   },
 ];
@@ -62,7 +80,7 @@ function NavButton({ item }: { item: NavItem }) {
           : location.pathname === item.to;
 
   return (
-    <motion.div whileHover={{ x: 3 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.15 }}>
+    <motion.div whileHover={{ x: 2 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.12 }}>
       <Button
         as={NavLink}
         to={item.to}
@@ -72,11 +90,20 @@ function NavButton({ item }: { item: NavItem }) {
         color={isActive ? "ink.primary" : "ink.dim"}
         bg={isActive ? "backgroundHover" : "transparent"}
         fontWeight={isActive ? 500 : 400}
-        transition="background 0.2s ease, color 0.2s ease"
+        transition="background 0.15s ease, color 0.15s ease"
         borderLeft="2px solid"
         borderLeftColor={isActive ? "azure.500" : "transparent"}
         borderRadius="base"
         pl={3}
+        leftIcon={
+          item.Icon ? (
+            <item.Icon
+              size={14}
+              strokeWidth={isActive ? 2 : 1.75}
+              style={{ opacity: isActive ? 1 : 0.7, flexShrink: 0 }}
+            />
+          ) : undefined
+        }
       >
         {item.label}
       </Button>
@@ -140,7 +167,7 @@ export default function Sidebar() {
           bg="gold.50"
           border="1px solid"
           borderColor="gold.500"
-          borderRadius="base"
+          borderRadius="md"
           flexShrink={0}
         >
           <Badge variant="premium" mb={2}>
@@ -167,8 +194,15 @@ export default function Sidebar() {
       >
         <VStack align="stretch" spacing={0}>
           {navSections.map((section) => (
-            <Box key={section.label} mb={4}>
-              <Kicker px={3} pb={2} pt={section.label === "Overzicht" ? 0 : 4}>
+            <Box key={section.label} mb={5}>
+              <Kicker
+                px={3}
+                pb={2}
+                pt={section.label === "Overzicht" ? 0 : 3}
+                letterSpacing="0.14em"
+                color="ink.faint"
+                fontSize="9px"
+              >
                 {section.label}
               </Kicker>
               <VStack align="stretch" spacing={0.5}>
@@ -182,14 +216,21 @@ export default function Sidebar() {
       </Box>
 
       <Box
-        px={5}
+        px={4}
         py={4}
         borderTop="1px solid"
         borderColor="line.soft"
         flexShrink={0}
         bg="backgroundCard"
       >
-        <Flex align="center" gap={3} p={2.5} borderRadius="base" bg="backgroundHover">
+        <Flex
+          align="center"
+          gap={3}
+          p={2.5}
+          borderRadius="md"
+          bg="backgroundHover"
+          mb={3}
+        >
           <Flex
             w={8}
             h={8}
@@ -201,6 +242,7 @@ export default function Sidebar() {
             fontFamily="heading"
             fontWeight={600}
             fontSize="13px"
+            flexShrink={0}
           >
             {initials}
           </Flex>
@@ -220,9 +262,9 @@ export default function Sidebar() {
         <Button
           variant="fiscalOutline"
           w="full"
-          mt={3}
           size="sm"
           onClick={() => void logout()}
+          leftIcon={<LogOut size={13} strokeWidth={2} />}
         >
           Uitloggen
         </Button>
@@ -230,4 +272,3 @@ export default function Sidebar() {
     </Box>
   );
 }
-

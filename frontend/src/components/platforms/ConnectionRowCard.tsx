@@ -1,6 +1,15 @@
 import { memo } from "react";
 import { Box, Button, Flex, Text } from "@chakra-ui/react";
 import { motion } from "framer-motion";
+import {
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  RefreshCw,
+  FileUp,
+  Unplug,
+  Trash2,
+} from "lucide-react";
 
 import type { PlatformConnection } from "../../api/integrations";
 import { getCatalogPlatform } from "../../data/platformCatalog";
@@ -12,18 +21,32 @@ function relativeSync(value: string | null): string {
   if (!value) return "Nog niet gesynchroniseerd";
   const d = new Date(value);
   const diffMin = Math.floor((Date.now() - d.getTime()) / 60000);
-  if (diffMin < 1) return "Zojuist gesynchroniseerd";
-  if (diffMin < 60) return `${diffMin} min geleden gesynchroniseerd`;
+  if (diffMin < 1) return "Zojuist";
+  if (diffMin < 60) return `${diffMin} min geleden`;
   const diffH = Math.floor(diffMin / 60);
-  if (diffH < 48) return `${diffH} uur geleden gesynchroniseerd`;
+  if (diffH < 48) return `${diffH} uur geleden`;
   const diffD = Math.floor(diffH / 24);
-  return `Laatste upload ${diffD} dag${diffD === 1 ? "" : "en"} geleden`;
+  return `${diffD} dag${diffD === 1 ? "" : "en"} geleden`;
 }
 
-function statusDot(status: PlatformConnection["status"]): string {
-  if (status === "success") return "moss.500";
-  if (status === "error") return "rust.500";
-  return "ochre.500";
+function StatusBadge({ status }: { status: PlatformConnection["status"] }) {
+  const isSuccess = status === "success";
+  const isError = status === "error";
+
+  const colorKey = isSuccess ? "moss.500" : isError ? "rust.500" : "gold.500";
+  const Icon = isSuccess ? CheckCircle2 : isError ? AlertCircle : Clock;
+  const label = isSuccess ? "Actief" : isError ? "Fout" : "Wachtend";
+
+  return (
+    <Flex align="center" gap={1.5}>
+      <Box color={colorKey} display="flex" flexShrink={0}>
+        <Icon size={13} strokeWidth={2.25} />
+      </Box>
+      <Text fontSize="xs" fontWeight={600} color={colorKey} letterSpacing="0.01em">
+        {label}
+      </Text>
+    </Flex>
+  );
 }
 
 interface ConnectionRowCardProps {
@@ -52,24 +75,24 @@ function ConnectionRowCardComponent({
   onImportHistoryChanged,
 }: ConnectionRowCardProps) {
   const catalog = getCatalogPlatform(connection.platform);
-  const initials =
-    catalog?.initials ??
-    connection.display_name.slice(0, 2);
+  const initials = catalog?.initials ?? connection.display_name.slice(0, 2);
   const color = catalog?.color ?? "#2d5a3a";
   const isCsv = connection.connection_method === "csv";
+  const syncTime = relativeSync(connection.last_synced_at);
 
   return (
     <motion.div variants={staggerItem}>
       <Box
-        p={4}
-        bg="backgroundCard"
+        p={5}
+        bg="paper"
         border="1px solid"
         borderColor="line.soft"
-        borderRadius="base"
+        borderRadius="md"
+        boxShadow="sm"
         transition="all 0.2s ease"
         _hover={{
           borderColor: "azure.300",
-          boxShadow: "0 6px 24px rgba(26, 58, 92, 0.07)",
+          boxShadow: "0 6px 24px -4px rgba(26, 58, 92, 0.10)",
         }}
       >
         <Flex
@@ -78,47 +101,56 @@ function ConnectionRowCardComponent({
           direction={{ base: "column", md: "row" }}
         >
           <PlatformAvatar initials={initials} color={color} />
+
           <Box flex={1} minW={0}>
-            <Text fontFamily="heading" fontSize="lg" fontWeight={500} letterSpacing="-0.02em">
+            <Text fontFamily="heading" fontSize="lg" fontWeight={500} letterSpacing="-0.02em" mb={0.5}>
               {connection.display_name}
             </Text>
-            <Text fontSize="sm" color="ink.dim" mt={1}>
-              {connection.platform_display} · {connection.connection_method_display}
-              {connection.connection_method === "api" && " · view-only API-key"}
+            <Text fontSize="xs" color="ink.faint">
+              {connection.platform_display}
+              {" · "}
+              {connection.connection_method_display}
+              {connection.connection_method === "api" && " · view-only"}
             </Text>
           </Box>
-          <Flex align="center" gap={3} minW={{ md: "220px" }}>
-            <Box w="8px" h="8px" borderRadius="full" bg={statusDot(connection.status)} flexShrink={0} />
-            <Box flex={1}>
-              <Text fontSize="sm" fontWeight={500}>
-                {relativeSync(connection.last_synced_at)}
+
+          <Box minW={{ md: "160px" }}>
+            <StatusBadge status={connection.status} />
+            <Text fontSize="xs" color="ink.dim" mt={1}>
+              {syncTime}
+            </Text>
+            {secondaryLine && (
+              <Text fontSize="xs" color="ink.dim">
+                {secondaryLine}
               </Text>
-              {secondaryLine && (
-                <Text fontSize="sm" color="ink.dim">
-                  {secondaryLine}
-                </Text>
-              )}
-              {connection.last_error && (
-                <Text fontSize="sm" color="rust.500" mt={1}>
-                  {connection.last_error}
-                </Text>
-              )}
-            </Box>
-          </Flex>
-          <Flex gap={2} flexWrap="wrap">
+            )}
+            {connection.last_error && (
+              <Text fontSize="xs" color="rust.500" mt={1} noOfLines={2}>
+                {connection.last_error}
+              </Text>
+            )}
+          </Box>
+
+          <Flex gap={2} flexWrap="wrap" align="center">
             {!isCsv && onSync && (
               <Button
                 variant="fiscalOutline"
                 size="sm"
                 isLoading={syncing}
                 onClick={onSync}
+                leftIcon={<RefreshCw size={13} strokeWidth={2} />}
               >
                 Synchroniseren
               </Button>
             )}
             {isCsv && onManage && (
-              <Button variant="fiscal" size="sm" onClick={onManage}>
-                {primaryActionLabel ?? "↺ Recentere upload"}
+              <Button
+                variant="fiscal"
+                size="sm"
+                onClick={onManage}
+                leftIcon={<FileUp size={13} strokeWidth={2} />}
+              >
+                {primaryActionLabel ?? "Recentere upload"}
               </Button>
             )}
             {onManage && !isCsv && (
@@ -127,7 +159,12 @@ function ConnectionRowCardComponent({
               </Button>
             )}
             {onDisconnect && (
-              <Button variant="fiscalOutline" size="sm" onClick={onDisconnect}>
+              <Button
+                variant="fiscalOutline"
+                size="sm"
+                onClick={onDisconnect}
+                leftIcon={<Unplug size={13} strokeWidth={2} />}
+              >
                 Loskoppelen
               </Button>
             )}
@@ -136,13 +173,17 @@ function ConnectionRowCardComponent({
                 variant="fiscalOutline"
                 size="sm"
                 color="rust.500"
+                borderColor="line.DEFAULT"
+                _hover={{ borderColor: "rust.500", bg: "rust.50" }}
                 onClick={onPurgeData}
+                leftIcon={<Trash2 size={13} strokeWidth={2} />}
               >
-                Alle data wissen
+                Data wissen
               </Button>
             )}
           </Flex>
         </Flex>
+
         {showImportHistory && (
           <ImportHistoryPanel
             connection={connection}

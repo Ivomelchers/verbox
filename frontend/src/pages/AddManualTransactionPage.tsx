@@ -2,14 +2,18 @@ import { FormEvent, useEffect, useState } from "react";
 import {
   Box,
   Button,
+  Flex,
   FormControl,
+  FormHelperText,
   FormLabel,
+  Grid,
   Input,
   Select,
   Text,
   VStack,
 } from "@chakra-ui/react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
+import { ArrowLeftRight, X } from "lucide-react";
 
 import {
   createManualTransaction,
@@ -123,87 +127,125 @@ export default function AddManualTransactionPage() {
 
       {assets.length === 0 && (
         <MotionSection>
-        <AuthAlert tone="info">
-          Voeg eerst een asset toe via{" "}
-          <Box as={RouterLink} to="/portfolio/manual/asset" color="azure.500">
-            asset toevoegen
-          </Box>
-          .
-        </AuthAlert>
+          <AuthAlert tone="info">
+            Voeg eerst een asset toe via{" "}
+            <Box as={RouterLink} to="/portfolio/manual/asset" color="azure.500">
+              asset toevoegen
+            </Box>
+            .
+          </AuthAlert>
         </MotionSection>
       )}
 
       <MotionSection>
-      <FiscalCard elevated p={6} as="form" onSubmit={(event) => void handleSubmit(event)}>
-        <VStack align="stretch" spacing={4}>
-          <FormControl isRequired>
-            <FormLabel>Asset</FormLabel>
-            <Select value={assetId} onChange={(e) => setAssetId(e.target.value)}>
-              {assets.map((asset) => (
-                <option key={asset.id} value={asset.id}>
-                  {asset.label}
-                </option>
-              ))}
-            </Select>
-            <Text fontSize="xs" color="ink.dim" mt={1}>
-              Gebaseerd op posities in uw portefeuille. Nieuw symbol?{" "}
-              <Box as={RouterLink} to="/portfolio/manual/asset" color="azure.500">
-                Asset toevoegen
-              </Box>
-            </Text>
-          </FormControl>
-          <FormControl>
-            <FormLabel>Type</FormLabel>
-            <Select
-              value={transactionType}
-              onChange={(e) => setTransactionType(e.target.value)}
-            >
-              {TX_TYPES.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl isRequired>
-            <FormLabel>Aantal</FormLabel>
-            <Input
-              type="number"
-              step="any"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-            />
-          </FormControl>
-          <FormControl>
-            <FormLabel>Prijs per stuk (EUR)</FormLabel>
-            <Input
-              type="number"
-              step="any"
-              value={priceEur}
-              onChange={(e) => setPriceEur(e.target.value)}
-            />
-          </FormControl>
-          <FormControl>
-            <FormLabel>Datum</FormLabel>
-            <Input
-              type="datetime-local"
-              value={occurredAt}
-              onChange={(e) => setOccurredAt(e.target.value)}
-            />
-          </FormControl>
-          <Button
-            type="submit"
-            variant="fiscal"
-            isLoading={loading}
-            isDisabled={assets.length === 0}
-          >
-            Transactie opslaan
-          </Button>
-          <Button as={RouterLink} to="/portfolio" variant="fiscalOutline" size="sm">
-            Annuleren
-          </Button>
-        </VStack>
-      </FiscalCard>
+        <FiscalCard elevated p={7} as="form" onSubmit={(event) => void handleSubmit(event)}>
+          <VStack align="stretch" spacing={5}>
+            <Grid templateColumns={{ base: "1fr", sm: "1fr 1fr" }} gap={4}>
+              <FormControl isRequired>
+                <FormLabel fontSize="sm" fontWeight={500} color="ink.dim" mb={1.5}>
+                  Asset
+                </FormLabel>
+                <Select
+                  variant="fiscal"
+                  value={assetId}
+                  onChange={(e) => setAssetId(e.target.value)}
+                >
+                  {assets.map((asset) => (
+                    <option key={asset.id} value={asset.id}>
+                      {asset.label}
+                    </option>
+                  ))}
+                </Select>
+                <FormHelperText fontSize="xs" color="ink.faint">
+                  Nieuw symbool?{" "}
+                  <Box as={RouterLink} to="/portfolio/manual/asset" color="azure.500">
+                    Asset toevoegen
+                  </Box>
+                </FormHelperText>
+              </FormControl>
+              <FormControl>
+                <FormLabel fontSize="sm" fontWeight={500} color="ink.dim" mb={1.5}>
+                  Type
+                </FormLabel>
+                <Select
+                  variant="fiscal"
+                  value={transactionType}
+                  onChange={(e) => setTransactionType(e.target.value)}
+                >
+                  {TX_TYPES.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid templateColumns={{ base: "1fr", sm: "1fr 1fr" }} gap={4}>
+              <FormControl isRequired>
+                <FormLabel fontSize="sm" fontWeight={500} color="ink.dim" mb={1.5}>
+                  Aantal
+                </FormLabel>
+                <Input
+                  type="number"
+                  step="any"
+                  placeholder="0.00"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel fontSize="sm" fontWeight={500} color="ink.dim" mb={1.5}>
+                  Prijs per stuk (EUR)
+                </FormLabel>
+                <Input
+                  type="number"
+                  step="any"
+                  placeholder="0.00"
+                  value={priceEur}
+                  onChange={(e) => setPriceEur(e.target.value)}
+                />
+              </FormControl>
+            </Grid>
+
+            <FormControl>
+              <FormLabel fontSize="sm" fontWeight={500} color="ink.dim" mb={1.5}>
+                Datum &amp; tijd
+              </FormLabel>
+              <Input
+                type="datetime-local"
+                value={occurredAt}
+                onChange={(e) => setOccurredAt(e.target.value)}
+              />
+              <FormHelperText fontSize="xs" color="ink.faint">
+                Optioneel — laat leeg voor vandaag
+              </FormHelperText>
+            </FormControl>
+
+            <Box pt={2} borderTop="1px solid" borderColor="line.soft">
+              <Flex gap={3} flexWrap="wrap">
+                <Button
+                  type="submit"
+                  variant="fiscal"
+                  isLoading={loading}
+                  isDisabled={assets.length === 0}
+                  leftIcon={<ArrowLeftRight size={15} strokeWidth={2} />}
+                >
+                  Transactie opslaan
+                </Button>
+                <Button
+                  as={RouterLink}
+                  to="/portfolio"
+                  variant="fiscalOutline"
+                  size="sm"
+                  leftIcon={<X size={13} strokeWidth={2} />}
+                >
+                  Annuleren
+                </Button>
+              </Flex>
+            </Box>
+          </VStack>
+        </FiscalCard>
       </MotionSection>
     </PageShell>
   );

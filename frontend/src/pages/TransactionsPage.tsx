@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
+  Box,
   Button,
   Flex,
   FormControl,
@@ -16,6 +17,16 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { Link as RouterLink, useSearchParams } from "react-router-dom";
+import {
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown,
+  Download,
+  Plus,
+  RotateCcw,
+  Filter,
+  Search,
+} from "lucide-react";
 import {
   downloadPortfolioTransactionsCsv,
   listPortfolios,
@@ -58,17 +69,6 @@ const SORT_COLUMNS: { key: SortField; label: string; align?: "right" }[] = [
   { key: "quantity", label: "Aantal", align: "right" },
   { key: "total_eur", label: "Totaal", align: "right" },
 ];
-
-const selectSx = {
-  bg: "paper",
-  border: "1px solid",
-  borderColor: "line.DEFAULT",
-  borderRadius: "base",
-  fontSize: "body",
-  h: "42px",
-  _hover: { borderColor: "taupe.500" },
-  _focusVisible: { borderColor: "azure.500", boxShadow: "none" },
-};
 
 export default function TransactionsPage() {
   const [searchParams] = useSearchParams();
@@ -212,9 +212,19 @@ export default function TransactionsPage() {
     setOrder("desc");
   }
 
-  function sortIndicator(field: SortField): string {
-    if (sort !== field) return "";
-    return order === "asc" ? " ↑" : " ↓";
+  function SortIcon({ field }: { field: SortField }) {
+    if (sort !== field) {
+      return (
+        <Box as="span" display="inline-flex" ml="3px" opacity={0.28} verticalAlign="middle">
+          <ChevronsUpDown size={10} />
+        </Box>
+      );
+    }
+    return (
+      <Box as="span" display="inline-flex" ml="3px" color="azure.500" verticalAlign="middle">
+        {order === "asc" ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+      </Box>
+    );
   }
 
   function openTransactionDetail(tx: Transaction) {
@@ -254,6 +264,7 @@ export default function TransactionsPage() {
                 isLoading={exportBusy}
                 isDisabled={!portfolioId || total === 0}
                 onClick={() => void handleExportCsv()}
+                leftIcon={<Download size={14} strokeWidth={2} />}
               >
                 Exporteer CSV
               </Button>
@@ -262,6 +273,7 @@ export default function TransactionsPage() {
                 to="/portfolio/manual/transaction"
                 variant="fiscal"
                 size="sm"
+                leftIcon={<Plus size={14} strokeWidth={2.5} />}
               >
                 Transactie toevoegen
               </Button>
@@ -295,108 +307,205 @@ export default function TransactionsPage() {
       )}
 
       <MotionSection>
-        <SectionHeader title="Filters" kicker="verfijn uw overzicht" />
-        <FiscalCard elevated p={5}>
-          <Grid
-            templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }}
-            gap={4}
+        <FiscalCard elevated p={0} overflow="hidden">
+          <Flex
+            px={5}
+            py={3}
+            borderBottom="1px solid"
+            borderColor="line.soft"
+            align="center"
+            justify="space-between"
           >
-            <FormControl>
-              <FormLabel fontSize="sm" color="ink.dim">
-                Platform
-              </FormLabel>
-              <Select
-                value={platform}
-                onChange={(e) => setPlatform(e.target.value)}
-                sx={selectSx}
+            <Flex align="center" gap={2}>
+              <Box color="ink.faint" display="flex">
+                <Filter size={13} strokeWidth={2} />
+              </Box>
+              <Text
+                fontSize="10px"
+                fontWeight={700}
+                letterSpacing="0.14em"
+                textTransform="uppercase"
+                color="ink.faint"
               >
-                <option value="">Alle platformen</option>
-                {filterOptions.platforms.map((p) => (
-                  <option key={p} value={p}>
-                    {platformLabel(p)}
-                  </option>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl>
-              <FormLabel fontSize="sm" color="ink.dim">
-                Type
-              </FormLabel>
-              <Select
-                value={transactionType}
-                onChange={(e) => setTransactionType(e.target.value)}
-                sx={selectSx}
-              >
-                <option value="">Alle types</option>
-                {filterOptions.transaction_types.map((t) => (
-                  <option key={t} value={t}>
-                    {transactionTypeLabel(t)}
-                  </option>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl>
-              <FormLabel fontSize="sm" color="ink.dim">
-                Asset (symbool)
-              </FormLabel>
-              <Input
-                variant="fiscal"
-                placeholder="bijv. BTC"
-                value={symbol}
-                onChange={(e) => setSymbol(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleApplyFilters();
-                }}
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel fontSize="sm" color="ink.dim">
-                Import
-              </FormLabel>
-              <Select
-                value={importBatchId}
-                onChange={(e) => setImportBatchId(e.target.value)}
-                sx={selectSx}
-              >
-                <option value="">Alle imports</option>
-                {filterOptions.import_batches.map((batch) => (
-                  <option key={batch.id} value={String(batch.id)}>
-                    {batch.label}
-                  </option>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl>
-              <FormLabel fontSize="sm" color="ink.dim">
-                Vanaf datum
-              </FormLabel>
-              <Input
-                type="date"
-                variant="fiscal"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel fontSize="sm" color="ink.dim">
-                Tot datum
-              </FormLabel>
-              <Input
-                type="date"
-                variant="fiscal"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-              />
-            </FormControl>
-          </Grid>
-          <Flex gap={2} mt={5} flexWrap="wrap">
-            <Button variant="fiscal" size="sm" onClick={handleApplyFilters}>
-              Toepassen
-            </Button>
-            <Button variant="fiscalOutline" size="sm" onClick={handleResetFilters}>
+                Filters
+              </Text>
+            </Flex>
+            <Button
+              variant="fiscalOutline"
+              size="sm"
+              onClick={handleResetFilters}
+              leftIcon={<RotateCcw size={12} strokeWidth={2} />}
+              h="28px"
+              fontSize="xs"
+            >
               Wis filters
             </Button>
           </Flex>
+
+          <Box px={5} pt={5} pb={5}>
+            <Grid
+              templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }}
+              gap={4}
+            >
+              <FormControl>
+                <FormLabel
+                  fontSize="10px"
+                  fontWeight={700}
+                  letterSpacing="0.1em"
+                  textTransform="uppercase"
+                  color="ink.faint"
+                  mb={1.5}
+                >
+                  Platform
+                </FormLabel>
+                <Select
+                  variant="fiscal"
+                  value={platform}
+                  onChange={(e) => setPlatform(e.target.value)}
+                >
+                  <option value="">Alle platformen</option>
+                  {filterOptions.platforms.map((p) => (
+                    <option key={p} value={p}>
+                      {platformLabel(p)}
+                    </option>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl>
+                <FormLabel
+                  fontSize="10px"
+                  fontWeight={700}
+                  letterSpacing="0.1em"
+                  textTransform="uppercase"
+                  color="ink.faint"
+                  mb={1.5}
+                >
+                  Type
+                </FormLabel>
+                <Select
+                  variant="fiscal"
+                  value={transactionType}
+                  onChange={(e) => setTransactionType(e.target.value)}
+                >
+                  <option value="">Alle types</option>
+                  {filterOptions.transaction_types.map((t) => (
+                    <option key={t} value={t}>
+                      {transactionTypeLabel(t)}
+                    </option>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl>
+                <FormLabel
+                  fontSize="10px"
+                  fontWeight={700}
+                  letterSpacing="0.1em"
+                  textTransform="uppercase"
+                  color="ink.faint"
+                  mb={1.5}
+                >
+                  Symbool
+                </FormLabel>
+                <Box position="relative">
+                  <Box
+                    position="absolute"
+                    left="12px"
+                    top="50%"
+                    transform="translateY(-50%)"
+                    color="ink.faint"
+                    pointerEvents="none"
+                    zIndex={1}
+                    display="flex"
+                  >
+                    <Search size={13} strokeWidth={2} />
+                  </Box>
+                  <Input
+                    variant="fiscal"
+                    placeholder="bijv. BTC"
+                    value={symbol}
+                    onChange={(e) => setSymbol(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleApplyFilters();
+                    }}
+                    pl="34px"
+                  />
+                </Box>
+              </FormControl>
+              <FormControl>
+                <FormLabel
+                  fontSize="10px"
+                  fontWeight={700}
+                  letterSpacing="0.1em"
+                  textTransform="uppercase"
+                  color="ink.faint"
+                  mb={1.5}
+                >
+                  Import
+                </FormLabel>
+                <Select
+                  variant="fiscal"
+                  value={importBatchId}
+                  onChange={(e) => setImportBatchId(e.target.value)}
+                >
+                  <option value="">Alle imports</option>
+                  {filterOptions.import_batches.map((batch) => (
+                    <option key={batch.id} value={String(batch.id)}>
+                      {batch.label}
+                    </option>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl>
+                <FormLabel
+                  fontSize="10px"
+                  fontWeight={700}
+                  letterSpacing="0.1em"
+                  textTransform="uppercase"
+                  color="ink.faint"
+                  mb={1.5}
+                >
+                  Vanaf datum
+                </FormLabel>
+                <Input
+                  type="date"
+                  variant="fiscal"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel
+                  fontSize="10px"
+                  fontWeight={700}
+                  letterSpacing="0.1em"
+                  textTransform="uppercase"
+                  color="ink.faint"
+                  mb={1.5}
+                >
+                  Tot datum
+                </FormLabel>
+                <Input
+                  type="date"
+                  variant="fiscal"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                />
+              </FormControl>
+            </Grid>
+
+            <Flex
+              gap={2}
+              mt={5}
+              pt={4}
+              borderTop="1px solid"
+              borderColor="line.soft"
+              flexWrap="wrap"
+            >
+              <Button variant="fiscal" size="sm" onClick={handleApplyFilters}>
+                Toepassen
+              </Button>
+            </Flex>
+          </Box>
         </FiscalCard>
       </MotionSection>
 
@@ -426,10 +535,10 @@ export default function TransactionsPage() {
           <FiscalTable
             toolbar={
               <Flex justify="space-between" align="center" flexWrap="wrap" gap={2}>
-                <Text fontSize="sm" color="ink.dim">
+                <Text fontSize="xs" color="ink.dim">
                   {rangeStart}–{rangeEnd} van {total} transacties
                 </Text>
-                <Flex gap={2}>
+                <Flex gap={2} align="center">
                   <Button
                     variant="fiscalOutline"
                     size="sm"
@@ -438,8 +547,8 @@ export default function TransactionsPage() {
                   >
                     Vorige
                   </Button>
-                  <Text fontSize="sm" color="ink.dim" alignSelf="center" px={1}>
-                    Pagina {page} / {totalPages}
+                  <Text fontSize="xs" color="ink.dim" px={1}>
+                    {page} / {totalPages}
                   </Text>
                   <Button
                     variant="fiscalOutline"
@@ -464,9 +573,10 @@ export default function TransactionsPage() {
                     onClick={() => handleSort(col.key)}
                     _hover={{ color: "azure.500" }}
                     whiteSpace="nowrap"
+                    color={sort === col.key ? "azure.500" : undefined}
                   >
                     {col.label}
-                    {sortIndicator(col.key)}
+                    <SortIcon field={col.key} />
                   </Th>
                 ))}
                 <Th isNumeric>Koers</Th>
@@ -537,8 +647,8 @@ export default function TransactionsPage() {
                         {tx.import_label ?? "—"}
                       </Text>
                     </Td>
-                    <Td px={2} color="ink.faint" fontSize="lg" lineHeight={1}>
-                      ›
+                    <Td px={2} color="ink.faint" fontSize="sm" lineHeight={1}>
+                      <ChevronDown size={14} style={{ transform: "rotate(-90deg)" }} />
                     </Td>
                   </Tr>
                 );

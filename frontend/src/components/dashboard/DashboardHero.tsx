@@ -1,4 +1,5 @@
 import { Box, Flex, Grid, Text } from "@chakra-ui/react";
+import { TrendingUp, TrendingDown } from "lucide-react";
 
 import type { DashboardHeroDelta, DashboardSummary } from "../../api/portfolio";
 import type { ForfaitairBox3Summary } from "../../api/tax";
@@ -25,22 +26,30 @@ function HeroDelta({ delta }: { delta: DashboardHeroDelta }) {
   if (!delta.available) return null;
   const change = parseFloat(delta.change_eur ?? "0");
   const up = change >= 0;
+  const Icon = up ? TrendingUp : TrendingDown;
 
   return (
-    <Flex align="center" gap={6} mt={5} flexWrap="wrap">
+    <Flex align="center" gap={5} mt={5} flexWrap="wrap">
       <Flex
         align="center"
         gap={2}
-        fontSize="sm"
+        px={3}
+        py={1.5}
+        borderRadius="base"
+        bg={up ? "moss.50" : "rust.50"}
+        border="1px solid"
+        borderColor={up ? "moss.500" : "rust.500"}
         sx={{ fontFeatureSettings: '"tnum" 1', fontVariantNumeric: "tabular-nums" }}
         color={up ? "moss.500" : "rust.500"}
+        fontSize="sm"
         fontWeight={600}
       >
-        <Text as="span">{up ? "▲" : "▼"}</Text>
+        <Box display="flex" opacity={0.9}>
+          <Icon size={14} strokeWidth={2.25} />
+        </Box>
         <Text as="span">{formatEur(delta.change_eur ?? "0")}</Text>
-        <Text as="span" opacity={0.9}>
-          ({up ? "+" : ""}
-          {delta.change_percent}%)
+        <Text as="span" opacity={0.8} fontSize="xs">
+          ({up ? "+" : ""}{delta.change_percent}%)
         </Text>
       </Flex>
       <Kicker color="ink.faint" letterSpacing="0.1em">
@@ -69,24 +78,27 @@ export default function DashboardHero({
       templateColumns={{ base: "1fr", xl: "1.35fr 1fr" }}
       gap={{ base: 6, xl: 10 }}
       py={{ base: 6, md: 10 }}
-      px={{ base: 0, md: 0 }}
       borderBottom="1px solid"
       borderColor="line.DEFAULT"
     >
       <Box>
-        <Kicker mb={4} letterSpacing="0.2em">
-          Welkom terug, {greetingName} —{" "}
-          <Box as="span" color="taupe.500">
+        <Flex align="center" gap={3} mb={5}>
+          <Kicker letterSpacing="0.18em">
+            Welkom terug, {greetingName}
+          </Kicker>
+          <Box w="1px" h="10px" bg="line.DEFAULT" />
+          <Kicker color="taupe.500" letterSpacing="0.1em">
             {todayLabel}
-          </Box>
-        </Kicker>
+          </Kicker>
+        </Flex>
 
         <Text
           fontFamily="heading"
           fontStyle="italic"
-          fontSize="md"
+          fontSize="sm"
           color="ink.dim"
-          mb={2}
+          mb={3}
+          letterSpacing="-0.01em"
         >
           Totaal vermogen, alle platformen
         </Text>
