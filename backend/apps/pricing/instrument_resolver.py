@@ -14,6 +14,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from apps.pricing.isin import looks_like_isin
+from apps.pricing.mic_suffix import mic_from_yahoo_suffix
 from apps.pricing.models import MappingSource
 
 logger = logging.getLogger(__name__)
@@ -70,6 +71,34 @@ def resolve_yahoo_ticker(symbol: str) -> str:
     if looks_like_isin(upper):
         ticker = _effective_ticker_for_isin(upper)
         return ticker if ticker else upper
+    return upper
+
+
+def _yahoo_ticker_to_marketstack(ticker: str, mic: str = "") -> str:
+    """Marketstack gebruikt <SYMBOL>.<MIC> (bv. ASML.XAMS) i.p.v. Yahoo's afkorting (ASML.AS)."""
+    base = ticker.upper().strip()
+    if mic:
+        return f"{base.split('.')[0]}.{mic.upper()}"
+    if "." in base:
+        symbol_part, suffix = base.split(".", 1)
+        resolved_mic = mic_from_yahoo_suffix(f".{suffix}")
+        if resolved_mic:
+            return f"{symbol_part}.{resolved_mic}"
+        return base
+    return base
+
+
+def resolve_marketstack_ticker(symbol: str) -> str:
+    upper = symbol.upper().strip()
+    if looks_like_isin(upper):
+        ticker = _effective_ticker_for_isin(upper)
+        if not ticker:
+            return upper
+        row = _db_mapping(upper)
+        mic = row.mic if row else ""
+        return _yahoo_ticker_to_marketstack(ticker, mic)
+    if upper in SYMBOL_ALIASES:
+        return _yahoo_ticker_to_marketstack(SYMBOL_ALIASES[upper])
     return upper
 
 

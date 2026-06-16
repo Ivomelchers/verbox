@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from apps.integrations.csv.detection import validate_csv_for_platform
+from apps.integrations.csv.detection import detect_csv_platform, validate_csv_for_platform
 from apps.integrations.okx.import_service import import_okx_csv_for_user
 from apps.integrations.okx.parser import parse_okx_csv
 from apps.integrations.testing.fixtures import load_text_fixture
@@ -34,6 +34,23 @@ class OkxParserTests(TestCase):
         row = parse_okx_csv(content).rows[0]
         self.assertEqual(row.symbol, "BTC")
         self.assertEqual(row.quantity, Decimal("0.5"))
+
+    def test_detects_export_with_leading_account_metadata_line(self):
+        """Some OKX exports prefix the real headers with an account-info line
+        (same shape as Bybit's "UID: ...,Company Name: ,..."). Detection must
+        skip it, otherwise the file is never recognized as OKX."""
+        content = (
+            "UID: 998877,Account Name: ,Country: \n"
+            "instId,side,fillSz,fillPx,fee,ts,tradeId\n"
+            "BTC-EUR,buy,0.01,42000,0.0001,1705312200000,111222\n"
+        )
+        matches = detect_csv_platform(content)
+        self.assertTrue(matches, "expected OKX to be detected from headers")
+        self.assertEqual(matches[0].platform, "okx")
+        self.assertGreaterEqual(matches[0].confidence, 0.85)
+
+        row = parse_okx_csv(content).rows[0]
+        self.assertEqual(row.symbol, "BTC")
 
 
 class OkxImportTests(TestCase):

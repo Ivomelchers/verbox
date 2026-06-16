@@ -5,7 +5,7 @@ from django.test import TestCase
 
 from apps.integrations.bybit.import_service import import_bybit_csv_for_user
 from apps.integrations.bybit.parser import parse_bybit_csv
-from apps.integrations.csv.detection import validate_csv_for_platform
+from apps.integrations.csv.detection import detect_csv_platform, validate_csv_for_platform
 from apps.integrations.testing.fixtures import load_text_fixture
 from apps.portfolio.models import AssetType, Transaction, TransactionType
 
@@ -82,6 +82,25 @@ class BybitParserTests(TestCase):
         self.assertEqual(len(result.rows), 1)
         self.assertEqual(result.rows[0].symbol, "BTC")
         self.assertEqual(result.rows[0].quantity, Decimal("0.1"))
+
+    def test_detects_metadata_header_export_without_explicit_platform(self):
+        """Real Bybit exports start with a 'UID: ...' account-info line.
+
+        Auto-detection reads raw CSV headers before the parser runs, so it must
+        also skip that metadata line — otherwise it never recognizes the file
+        as Bybit at all (regression: previously detect_csv_platform found no
+        match for any platform on this file).
+        """
+        content = (
+            "UID: 507999707,Company Name: ,Country: \n"
+            "Uid,Date & Time(UTC),Coin,QTY,Type,Account Balance,Description\n"
+            "507999707,2025-09-30 18:23:12,USDT,0.08640857,Transfer in,0.08640857,\n"
+            "507999707,2025-09-30 19:04:50,USDC,-1846.589938,Withdraw,0.00000066,Withdrawal\n"
+        )
+        matches = detect_csv_platform(content)
+        self.assertTrue(matches, "expected Bybit to be detected from headers")
+        self.assertEqual(matches[0].platform, "bybit")
+        self.assertGreaterEqual(matches[0].confidence, 0.85)
 
 
 class BybitImportTests(TestCase):

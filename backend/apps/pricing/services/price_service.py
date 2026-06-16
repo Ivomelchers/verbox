@@ -12,7 +12,8 @@ from apps.pricing.exceptions import PriceFetchError
 from apps.pricing.providers import (
     BitvavoCryptoProvider,
     CoinGeckoCryptoProvider,
-    YahooEquitiesProvider,
+    MarketstackCommodityProvider,
+    MarketstackEquitiesProvider,
 )
 from apps.pricing.providers.base import LivePriceProvider, LivePriceQuote
 from apps.pricing.services.cache_keys import historical_price_cache_key, live_price_cache_key
@@ -153,12 +154,15 @@ def default_live_price_providers() -> list[LivePriceProvider]:
     """
     Gratis stack (beste beschikbaar zonder betaalde feed):
     - Crypto: Bitvavo publiek → CoinGecko (batch, optioneel Demo-key)
-    - ETF/aandelen/fondsen: Yahoo Finance (yfinance)
+    - ETF/aandelen/fondsen: Marketstack (EOD-data, wisselkoers via exchangeratesapi.io)
+    - Edelmetalen: Marketstack Commodities — vereist betaald plan (free plan: 403
+      function_access_restricted, bevestigd 16 jun 2026); blijft tot dan onbruikbaar.
     """
     return [
         BitvavoCryptoProvider(),
         CoinGeckoCryptoProvider(),
-        YahooEquitiesProvider(),
+        MarketstackEquitiesProvider(),
+        MarketstackCommodityProvider(),
     ]
 
 

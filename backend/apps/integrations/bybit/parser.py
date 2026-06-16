@@ -36,18 +36,7 @@ def parse_bybit_csv(
     *,
     column_mapping: dict[str, str] | None = None,
 ) -> CsvParseResult:
-    # Skip Bybit metadata header lines (e.g., "UID: 123456,Company Name: ...")
-    lines = content.split('\n')
-    csv_start = 0
-    for i, line in enumerate(lines):
-        # Skip lines that look like metadata (contain colons but not commas separating data)
-        if line.strip() and ':' in line and line.count(':') > line.count(','):
-            csv_start = i + 1
-        else:
-            break
-    cleaned_content = '\n'.join(lines[csv_start:])
-
-    data_rows, original_headers, _ = read_dict_rows(cleaned_content)
+    data_rows, original_headers, _ = read_dict_rows(content)
     hmap = header_map(original_headers)
     normalized = set(hmap.keys())
 

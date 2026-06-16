@@ -26,10 +26,10 @@ class PriceRefreshTests(TestCase):
         reset_price_service()
         cache.clear()
 
-    @patch("apps.pricing.services.price_service.YahooEquitiesProvider")
+    @patch("apps.pricing.services.price_service.MarketstackEquitiesProvider")
     @patch("apps.pricing.services.price_service.CoinGeckoCryptoProvider")
     @patch("apps.pricing.services.price_service.BitvavoCryptoProvider")
-    def test_crypto_fallback_to_coingecko(self, mock_bitvavo_cls, mock_cg_cls, mock_yahoo_cls):
+    def test_crypto_fallback_to_coingecko(self, mock_bitvavo_cls, mock_cg_cls, mock_marketstack_cls):
         mock_bitvavo = MagicMock()
         mock_bitvavo.supports_asset_type.return_value = True
         mock_bitvavo.fetch_live_prices.side_effect = PriceFetchError("bitvavo down")
@@ -42,9 +42,9 @@ class PriceRefreshTests(TestCase):
         }
         mock_cg_cls.return_value = mock_cg
 
-        mock_yahoo = MagicMock()
-        mock_yahoo.supports_asset_type.return_value = False
-        mock_yahoo_cls.return_value = mock_yahoo
+        mock_marketstack = MagicMock()
+        mock_marketstack.supports_asset_type.return_value = False
+        mock_marketstack_cls.return_value = mock_marketstack
 
         service = PriceService()
         quotes = service.get_live_prices([("ETH", AssetType.CRYPTO)], force_refresh=True)

@@ -30,8 +30,15 @@ MIC_TO_YAHOO_SUFFIX: dict[str, str] = {
 }
 
 
+YAHOO_SUFFIX_TO_MIC: dict[str, str] = {v.upper(): k for k, v in MIC_TO_YAHOO_SUFFIX.items()}
+
+
 def yahoo_suffix_from_mic(mic: str) -> str | None:
     return MIC_TO_YAHOO_SUFFIX.get((mic or "").upper().strip())
+
+
+def mic_from_yahoo_suffix(suffix: str) -> str | None:
+    return YAHOO_SUFFIX_TO_MIC.get((suffix or "").upper().strip())
 
 
 def yahoo_suffix_from_openfigi_exch(exch_code: str) -> str | None:

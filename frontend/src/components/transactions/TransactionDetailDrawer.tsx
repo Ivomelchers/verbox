@@ -128,7 +128,7 @@ function formatLiveFetchedAt(iso: string): string {
 }
 
 function livePriceSourceLabel(source: string): string {
-  if (source === "yahoo") return "Yahoo Finance";
+  if (source === "marketstack") return "Marketstack";
   if (source === "bitvavo") return "Bitvavo";
   if (source === "coingecko") return "CoinGecko";
   return source;
@@ -301,7 +301,7 @@ export default function TransactionDetailDrawer({
               <Text fontSize="xs" color="ink.faint" mt={2} lineHeight={1.6}>
                 {liveQuote?.market_label
                   ? `Koers in euro van ${liveQuote.market_label}. Andere beursnoteringen van hetzelfde fonds (bijv. .IR, .L of USD) kunnen afwijken — wij tonen de EUR-notering passend bij uw ISIN.`
-                  : "Koers in euro via Yahoo Finance of uw broker-feed."}
+                  : "Koers in euro via Marketstack of uw broker-feed."}
                 {tx.transaction_type === "dividend"
                   ? " Dit is de huidige ETF-koers, niet het dividendbedrag."
                   : null}

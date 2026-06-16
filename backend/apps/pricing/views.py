@@ -3,18 +3,25 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.portfolio.models import AssetType
-from apps.pricing.instrument_resolver import resolve_yahoo_ticker
+from apps.pricing.instrument_resolver import resolve_marketstack_ticker
 from apps.pricing.services import get_price_service
 
+_MIC_LABELS = {
+    "XAMS": "Euronext Amsterdam",
+    "XLON": "LSE",
+    "XETR": "XETRA",
+    "XNAS": "NASDAQ",
+    "XNYS": "NYSE",
+}
 
-def _market_label(yahoo_ticker: str) -> str:
-    upper = yahoo_ticker.upper()
-    if upper.endswith(".AS"):
-        return f"Euronext Amsterdam ({upper})"
-    if upper.endswith(".L"):
-        return f"LSE ({upper})"
-    if upper.endswith(".DE"):
-        return f"XETRA ({upper})"
+
+def _market_label(market_ticker: str) -> str:
+    upper = market_ticker.upper()
+    if "." in upper:
+        _, mic = upper.split(".", 1)
+        label = _MIC_LABELS.get(mic)
+        if label:
+            return f"{label} ({upper})"
     return upper
 
 
@@ -44,7 +51,9 @@ class LiveQuotesView(APIView):
             if symbol not in quotes:
                 continue
             quote = quotes[symbol]
-            market_ticker = resolve_yahoo_ticker(symbol) if quote.source == "yahoo" else symbol
+            market_ticker = (
+                resolve_marketstack_ticker(symbol) if quote.source == "marketstack" else symbol
+            )
             payload.append(
                 {
                     "symbol": symbol,
@@ -55,7 +64,7 @@ class LiveQuotesView(APIView):
                     "from_cache": quote.from_cache,
                     "market_ticker": market_ticker,
                     "market_label": _market_label(market_ticker)
-                    if quote.source == "yahoo"
+                    if quote.source == "marketstack"
                     else market_ticker,
                 }
             )

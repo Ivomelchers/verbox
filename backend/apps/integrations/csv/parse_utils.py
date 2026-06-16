@@ -12,7 +12,11 @@ from decimal import Decimal, InvalidOperation
 from django.utils import timezone
 
 from apps.integrations.csv.base import CsvParseError
-from apps.integrations.csv.headers import detect_delimiter, normalize_header
+from apps.integrations.csv.headers import (
+    detect_delimiter,
+    normalize_header,
+    strip_metadata_header_lines,
+)
 
 
 def parse_decimal(value: str) -> Decimal:
@@ -38,8 +42,9 @@ def read_dict_rows(content: str) -> tuple[list[dict[str, str]], list[str], str]:
     if not (content or "").strip():
         raise CsvParseError("CSV-bestand is leeg.")
 
-    delimiter = detect_delimiter(content)
-    reader = csv.DictReader(io.StringIO(content), delimiter=delimiter)
+    cleaned_content = strip_metadata_header_lines(content)
+    delimiter = detect_delimiter(cleaned_content)
+    reader = csv.DictReader(io.StringIO(cleaned_content), delimiter=delimiter)
     if not reader.fieldnames:
         raise CsvParseError("CSV heeft geen kolomkoppen.")
 

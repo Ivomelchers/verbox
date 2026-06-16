@@ -272,6 +272,16 @@ BYBIT_RECV_WINDOW = int(os.environ.get("BYBIT_RECV_WINDOW", "5000"))
 OKX_API_URL = os.environ.get("OKX_API_URL", "https://www.okx.com")
 PRICE_API_KEY = os.environ.get("PRICE_API_KEY", "")
 
+# Marketstack (aandelen/ETF EOD-koersen — vervangt Yahoo Finance)
+MARKETSTACK_API_KEY = os.environ.get("MARKETSTACK_API_KEY", "")
+MARKETSTACK_API_URL = os.environ.get("MARKETSTACK_API_URL", "https://api.marketstack.com/v2")
+
+# Exchangeratesapi.io (wisselkoersen vreemde valuta → EUR)
+EXCHANGERATESAPI_API_KEY = os.environ.get("EXCHANGERATESAPI_API_KEY", "")
+EXCHANGERATESAPI_API_URL = os.environ.get(
+    "EXCHANGERATESAPI_API_URL", "https://api.exchangeratesapi.io/v1"
+)
+
 # Saxo Bank OAuth Configuration
 SAXO_CLIENT_ID = os.environ.get("SAXO_CLIENT_ID", "")
 SAXO_CLIENT_SECRET = os.environ.get("SAXO_CLIENT_SECRET", "")
