@@ -23,10 +23,10 @@ FAILURE_NO_ROWS = "no_recognized_rows"
 FAILURE_PARSE = "parse_error"
 
 
-def _decimal_str(value: Decimal | None) -> str | None:
+def _decimal_str(value: Decimal | int | None) -> str | None:
     if value is None:
         return None
-    return format(value.quantize(Decimal("0.01")), "f")
+    return format(Decimal(value).quantize(Decimal("0.01")), "f")
 
 
 def _row_to_preview(row, *, status: str) -> dict:

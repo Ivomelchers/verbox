@@ -1,5 +1,7 @@
 """Bybit spot trade CSV parser."""
 
+from decimal import Decimal
+
 from apps.integrations.bybit.column_schema import BYBIT_SCHEMA
 from apps.integrations.bybit.fingerprint import bybit_fingerprint_score, bybit_missing_required
 from apps.integrations.bybit.history import base_symbol_from_pair, map_bybit_side
@@ -76,7 +78,7 @@ def parse_bybit_csv(
 
         try:
             quantity = abs(parse_decimal(_cell(raw, qty_col)))
-            price = abs(parse_decimal(_cell(raw, price_col))) if price_col else 0
+            price = abs(parse_decimal(_cell(raw, price_col))) if price_col else Decimal(0)
             fee = abs(parse_decimal(_cell(raw, fee_col)))
             occurred_at = _parse_executed_at(_cell(raw, time_col))
         except CsvParseError as exc:
@@ -87,7 +89,7 @@ def parse_bybit_csv(
 
         symbol = base_symbol_from_pair(symbol_raw)
         tx_type = map_bybit_side(side_raw)
-        total = quantity * price if price > 0 else 0
+        total = quantity * price if price > 0 else Decimal(0)
         order_id = _cell(raw, order_col)
         tx_hash = row_hash(
             [

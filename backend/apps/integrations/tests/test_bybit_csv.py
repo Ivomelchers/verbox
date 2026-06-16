@@ -6,6 +6,7 @@ from django.test import TestCase
 from apps.integrations.bybit.import_service import import_bybit_csv_for_user
 from apps.integrations.bybit.parser import parse_bybit_csv
 from apps.integrations.csv.detection import detect_csv_platform, validate_csv_for_platform
+from apps.integrations.csv.preview import preview_csv_for_user
 from apps.integrations.testing.fixtures import load_text_fixture
 from apps.portfolio.models import AssetType, Transaction, TransactionType
 
@@ -58,6 +59,19 @@ class BybitParserTests(TestCase):
         self.assertEqual(result.rows[0].symbol, "BTC")
         self.assertEqual(result.rows[0].transaction_type, TransactionType.BUY)
         self.assertEqual(result.rows[0].quantity, Decimal("0.1"))
+
+    def test_asset_history_rows_have_decimal_price_and_total(self):
+        """Asset-history exports have no price column, so price/total fall back
+        to a default. That default must be Decimal — not a plain int — because
+        downstream preview code calls .quantize() on it (regression: a bare
+        ``0`` int there caused an AttributeError -> 500 in the preview API)."""
+        content = (
+            "UID,Date & Time(UTC),Coin,QTY,Type,Account Balance,Description\n"
+            "123,2025-09-30 18:23:12,BTC,0.1,Transfer in,0.1,\n"
+        )
+        row = parse_bybit_csv(content).rows[0]
+        self.assertIsInstance(row.price_eur, Decimal)
+        self.assertIsInstance(row.total_eur, Decimal)
 
     def test_asset_history_withdraw_mapping(self):
         """Test that 'Withdraw' maps to SELL."""
@@ -122,3 +136,18 @@ class BybitImportTests(TestCase):
                 asset__asset_type=AssetType.CRYPTO,
             ).exists()
         )
+
+    def test_preview_asset_history_export_does_not_500(self):
+        """Real-world regression: previewing a Bybit asset-change-history CSV
+        (metadata header line, no price column) crashed the preview API with
+        AttributeError: 'int' object has no attribute 'quantize'."""
+        content = (
+            "UID: 507999707,Company Name: ,Country: \n"
+            "Uid,Date & Time(UTC),Coin,QTY,Type,Account Balance,Description\n"
+            "507999707,2025-09-30 18:23:12,USDT,0.08640857,Transfer in,0.08640857,\n"
+            "507999707,2025-09-30 19:04:50,USDC,-1846.589938,Withdraw,0.00000066,Withdrawal\n"
+        )
+        result = preview_csv_for_user(self.user, content, platform="bybit")
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["summary"]["new"], 2)
+        self.assertEqual(result["transactions"][0]["price_eur"], "0.00")
