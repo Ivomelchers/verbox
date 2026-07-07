@@ -22,16 +22,6 @@ The platform handles real financial data for real users. Tax calculation errors 
 
 ---
 
-## 2. The three contract milestones
-
-| Milestone | Payment | What it requires |
-|-----------|---------|-----------------|
-| M1 — First month | €1,000 | Working dev environment, repo accessible to client, regular commits |
-| M2 — Testable MVP | €2,000 | Full auth, portfolio, Bitvavo + DEGIRO import, Box 3 calculation, payment flow |
-| M3 — Launch-ready | €3,000 | All platform integrations, production environment, security audit, GDPR, full handover |
-
-**Status today:** M1 criteria met. M2 functionally complete but not yet accepted by client (pending end-to-end test). Mollie payments (required for M2) deliberately postponed.
-
 ---
 
 ## 3. Where to find things
